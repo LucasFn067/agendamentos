@@ -7,10 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         .booking-slot {
             transition: all 0.3s ease;
             cursor: pointer;
+            touch-action: manipulation;
         }
         .booking-slot:hover {
             transform: translateY(-2px);
@@ -49,20 +54,57 @@
         .admin-day-card.selected .text-gray-500 {
             color: white !important;
         }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .booking-slot {
+                min-height: 70px;
+                padding: 12px 8px;
+            }
+            .day-card, .admin-day-card {
+                padding: 12px 8px;
+                min-height: 80px;
+            }
+            .mobile-scroll {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .mobile-grid {
+                display: flex;
+                gap: 12px;
+                min-width: max-content;
+                padding: 0 16px;
+            }
+            .mobile-grid > div {
+                flex: 0 0 120px;
+            }
+        }
+        
+        /* Touch targets */
+        button, .booking-slot, .day-card, .admin-day-card {
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        
+        /* Prevent zoom on input focus for iOS */
+        input[type="text"], input[type="password"] {
+            font-size: 16px;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-lg fixed w-full top-0 z-50">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div class="h-12 w-12 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-md">
-                    <img src="https://i.postimg.cc/562NxnCj/logo.jpg" alt="Logo do Clube" class="h-10 w-10 object-contain" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-green-600 font-bold text-xl\'>🎾</span>';">
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="h-10 w-10 sm:h-12 sm:w-12 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-md">
+                    <img src="https://i.postimg.cc/562NxnCj/logo.jpg" alt="Logo do Clube" class="h-8 w-8 sm:h-10 sm:w-10 object-contain" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-green-600 font-bold text-lg sm:text-xl\'>🎾</span>';">
                 </div>
-                <h1 class="text-2xl font-bold text-gray-800">Sistema de Agendamento</h1>
+                <h1 class="text-lg sm:text-2xl font-bold text-gray-800">Sistema de Agendamento</h1>
             </div>
-            <button id="adminBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                Área do Gestor
+            <button id="adminBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                <span class="hidden sm:inline">Área do Gestor</span>
+                <span class="sm:hidden">Admin</span>
             </button>
         </div>
     </header>
@@ -72,38 +114,38 @@
         <!-- Client Area -->
         <div id="clientArea" class="container mx-auto px-4 fade-in">
             <div class="max-w-6xl mx-auto">
-                <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
-                    <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Bem-vindo ao Clube de Tênis</h2>
-                    <p class="text-center text-gray-600 mb-8 text-lg">Para marcar um horário digite seu CPF e nome completo!</p>
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-8 mb-6 sm:mb-8">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">Bem-vindo ao Clube de Tênis</h2>
+                    <p class="text-center text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg px-2">Para marcar um horário digite seu CPF e nome completo!</p>
                     
-                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">CPF</label>
-                            <input type="text" id="clientCpf" placeholder="000.000.000-00" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <input type="text" id="clientCpf" placeholder="000.000.000-00" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
-                            <input type="text" id="clientName" placeholder="Seu nome completo" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <input type="text" id="clientName" placeholder="Seu nome completo" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base">
                         </div>
                     </div>
                     
-                    <div class="flex gap-4 justify-center">
-                        <button id="checkBookingBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                        <button id="checkBookingBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors text-base w-full sm:w-auto">
                             Verificar Agendamento
                         </button>
-                        <button id="newBookingBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        <button id="newBookingBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors text-base w-full sm:w-auto">
                             Novo Agendamento
                         </button>
                     </div>
                 </div>
 
                 <!-- Booking Grid -->
-                <div id="bookingGrid" class="bg-white rounded-xl shadow-lg p-6 hidden">
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800 text-center mb-2">Agenda da Semana</h3>
-                        <div id="weekDates" class="text-center text-gray-600 mb-4"></div>
-                        <div class="flex justify-center mb-6">
-                            <div class="flex gap-6 text-sm">
+                <div id="bookingGrid" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hidden">
+                    <div class="mb-4 sm:mb-6">
+                        <h3 class="text-xl sm:text-2xl font-bold text-gray-800 text-center mb-2">Agenda da Semana</h3>
+                        <div id="weekDates" class="text-center text-gray-600 mb-4 text-sm sm:text-base"></div>
+                        <div class="flex justify-center mb-4 sm:mb-6">
+                            <div class="flex gap-4 sm:gap-6 text-sm">
                                 <div class="flex items-center gap-2">
                                     <div class="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
                                     <span>Disponível</span>
@@ -117,65 +159,65 @@
                     </div>
                     
                     <!-- Day Selection -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="0">
-                            <div class="font-bold text-blue-800">Segunda</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-0"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-0"></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 mb-6">
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="0">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Segunda</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-0"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-0"></div>
                         </div>
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="1">
-                            <div class="font-bold text-blue-800">Terça</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-1"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-1"></div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="1">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Terça</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-1"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-1"></div>
                         </div>
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="2">
-                            <div class="font-bold text-blue-800">Quarta</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-2"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-2"></div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="2">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Quarta</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-2"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-2"></div>
                         </div>
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="3">
-                            <div class="font-bold text-blue-800">Quinta</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-3"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-3"></div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="3">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Quinta</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-3"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-3"></div>
                         </div>
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="4">
-                            <div class="font-bold text-blue-800">Sexta</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-4"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-4"></div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="4">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Sexta</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-4"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-4"></div>
                         </div>
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="5">
-                            <div class="font-bold text-blue-800">Sábado</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-5"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-5"></div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="5">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Sábado</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-5"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-5"></div>
                         </div>
-                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="6">
-                            <div class="font-bold text-blue-800">Domingo</div>
-                            <div class="text-sm text-blue-600 mt-1" id="date-6"></div>
-                            <div class="text-xs text-blue-500 mt-2" id="available-6"></div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="6">
+                            <div class="font-bold text-blue-800 text-sm sm:text-base">Domingo</div>
+                            <div class="text-xs sm:text-sm text-blue-600 mt-1" id="date-6"></div>
+                            <div class="text-xs text-blue-500 mt-1 sm:mt-2" id="available-6"></div>
                         </div>
                     </div>
 
                     <!-- Time Slots for Selected Day -->
                     <div id="timeSlots" class="hidden">
-                        <h4 class="text-xl font-bold text-gray-800 mb-4 text-center" id="selectedDayTitle"></h4>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" id="timeSlotsGrid">
+                        <h4 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 text-center px-2" id="selectedDayTitle"></h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3" id="timeSlotsGrid">
                             <!-- Time slots will be populated by JavaScript -->
                         </div>
-                        <button id="backToDaysBtn" class="mt-6 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        <button id="backToDaysBtn" class="mt-4 sm:mt-6 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg w-full sm:w-auto">
                             ← Voltar aos Dias
                         </button>
                     </div>
                 </div>
 
                 <!-- Client Booking Display -->
-                <div id="clientBookingDisplay" class="bg-white rounded-xl shadow-lg p-6 hidden">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Seu Agendamento</h3>
+                <div id="clientBookingDisplay" class="bg-white rounded-xl shadow-lg p-4 sm:p-6 hidden">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Seu Agendamento</h3>
                     <div id="bookingDetails" class="bg-green-50 p-4 rounded-lg"></div>
-                    <div class="mt-4 flex gap-4">
-                        <button id="backToGridBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    <div class="mt-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <button id="backToGridBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg w-full sm:w-auto">
                             Voltar à Agenda
                         </button>
-                        <button id="cancelClientBookingBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                        <button id="cancelClientBookingBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg w-full sm:w-auto">
                             Cancelar Agendamento
                         </button>
                     </div>
@@ -185,16 +227,16 @@
 
         <!-- Admin Login -->
         <div id="adminLogin" class="container mx-auto px-4 hidden">
-            <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Área do Gestor</h2>
+            <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6">Área do Gestor</h2>
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
-                        <input type="text" id="adminUser" value="admin" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="text" id="adminUser" value="admin" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
-                        <input type="password" id="adminPass" value="admin" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="password" id="adminPass" value="admin" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base">
                     </div>
                     <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors">
                         Entrar
@@ -209,73 +251,74 @@
         <!-- Admin Panel -->
         <div id="adminPanel" class="container mx-auto px-4 hidden">
             <div class="max-w-7xl mx-auto">
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Painel do Gestor</h2>
-                        <div class="flex gap-4">
-                            <button id="openWeekBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                                Abrir Próxima Semana
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Painel do Gestor</h2>
+                        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                            <button id="openWeekBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                                <span class="hidden sm:inline">Abrir Semana</span>
+                                <span class="sm:hidden">Abrir</span>
                             </button>
-                            <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base">
                                 Sair
                             </button>
                         </div>
                     </div>
                     
                     <!-- Admin Day Selection -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="0">
-                            <div class="font-bold text-gray-800">Segunda</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-0"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-0"></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="0">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Segunda</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-0"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-0"></div>
                         </div>
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="1">
-                            <div class="font-bold text-gray-800">Terça</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-1"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-1"></div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="1">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Terça</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-1"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-1"></div>
                         </div>
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="2">
-                            <div class="font-bold text-gray-800">Quarta</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-2"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-2"></div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="2">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Quarta</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-2"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-2"></div>
                         </div>
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="3">
-                            <div class="font-bold text-gray-800">Quinta</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-3"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-3"></div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="3">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Quinta</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-3"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-3"></div>
                         </div>
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="4">
-                            <div class="font-bold text-gray-800">Sexta</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-4"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-4"></div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="4">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Sexta</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-4"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-4"></div>
                         </div>
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="5">
-                            <div class="font-bold text-gray-800">Sábado</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-5"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-5"></div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="5">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Sábado</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-5"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-5"></div>
                         </div>
-                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="6">
-                            <div class="font-bold text-gray-800">Domingo</div>
-                            <div class="text-sm text-gray-600 mt-1" id="admin-date-6"></div>
-                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-6"></div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-3 sm:p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="6">
+                            <div class="font-bold text-gray-800 text-sm sm:text-base">Domingo</div>
+                            <div class="text-xs sm:text-sm text-gray-600 mt-1" id="admin-date-6"></div>
+                            <div class="text-xs text-gray-500 mt-1 sm:mt-2" id="admin-booked-6"></div>
                         </div>
                     </div>
 
                     <!-- Admin Time Slots for Selected Day -->
                     <div id="adminTimeSlots" class="hidden">
-                        <h4 class="text-xl font-bold text-gray-800 mb-4 text-center" id="adminSelectedDayTitle"></h4>
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" id="adminTimeSlotsGrid">
+                        <h4 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 text-center px-2" id="adminSelectedDayTitle"></h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3" id="adminTimeSlotsGrid">
                             <!-- Admin time slots will be populated by JavaScript -->
                         </div>
-                        <button id="adminBackToDaysBtn" class="mt-6 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        <button id="adminBackToDaysBtn" class="mt-4 sm:mt-6 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg w-full sm:w-auto">
                             ← Voltar aos Dias
                         </button>
                     </div>
                 </div>
 
                 <!-- Bookings List -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Lista de Agendamentos</h3>
+                <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Lista de Agendamentos</h3>
                     <div id="bookingsList" class="space-y-2">
                         <!-- Bookings list will be populated by JavaScript -->
                     </div>
@@ -285,7 +328,7 @@
     </main>
 
     <!-- Success/Error Messages -->
-    <div id="messageContainer" class="fixed top-24 right-4 z-50"></div>
+    <div id="messageContainer" class="fixed top-20 left-4 right-4 sm:top-24 sm:left-auto sm:right-4 sm:w-auto z-50"></div>
 
     <script>
         // Data storage
@@ -325,13 +368,28 @@
             setTimeout(() => div.remove(), 3000);
         }
 
-        function canBookNextWeek() {
-            const now = new Date();
-            const currentDay = now.getDay();
-            const currentHour = now.getHours();
+        function canBookWeek() {
+            // Week is only available if admin has opened it
+            return isNextWeekOpen;
+        }
+
+        function canBookDate(dateKey) {
+            const slotDate = new Date(dateKey);
+            const today = new Date();
+            const currentWeekStart = getWeekStart(today);
+            const currentWeekEnd = new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000); // Sunday
             
-            // Can only book next week if it's Sunday after 5 PM and admin opened it
-            return currentDay === 0 && currentHour >= 17 && isNextWeekOpen;
+            // Always allow booking for current week (Monday to Sunday)
+            if (slotDate >= currentWeekStart && slotDate <= currentWeekEnd) {
+                return true;
+            }
+            
+            // For future weeks (after current Sunday), check if admin has opened them
+            if (slotDate > currentWeekEnd) {
+                return canBookWeek();
+            }
+            
+            return false;
         }
 
         function initializeDayCards() {
@@ -494,18 +552,19 @@
 
 
 
-            // Check if date is valid (current week only, unless next week is open)
-            const slotDate = new Date(dateKey);
-            const today = new Date();
-            const weekStart = getWeekStart(today);
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekEnd.getDate() + 6);
-
-            if (slotDate < weekStart || slotDate > weekEnd) {
-                if (!canBookNextWeek() || slotDate < weekStart) {
-                    showMessage('Você só pode agendar para a semana atual!', 'error');
-                    return;
+            // Check if date is valid using the new validation function
+            if (!canBookDate(dateKey)) {
+                const slotDate = new Date(dateKey);
+                const today = new Date();
+                const currentWeekStart = getWeekStart(today);
+                const slotWeekStart = getWeekStart(slotDate);
+                
+                if (formatDate(slotWeekStart) === formatDate(currentWeekStart)) {
+                    showMessage('Erro inesperado ao validar data da semana atual!', 'error');
+                } else {
+                    showMessage('Semanas futuras só ficam disponíveis após o gestor abrir no domingo às 17h!', 'error');
                 }
+                return;
             }
 
             // Make booking
@@ -613,7 +672,7 @@
             if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
                 delete bookings[key];
                 localStorage.setItem('tennisBookings', JSON.stringify(bookings));
-                createWeekGrid(document.getElementById('adminWeekGrid'), true);
+                initializeDayCards();
                 updateBookingsList();
                 showMessage('Agendamento cancelado com sucesso!');
             }
@@ -695,9 +754,10 @@
             if (now.getDay() === 0 && now.getHours() >= 17) {
                 isNextWeekOpen = true;
                 localStorage.setItem('nextWeekOpen', JSON.stringify(true));
-                showMessage('Próxima semana aberta para agendamentos!');
+                showMessage('Semana aberta para agendamentos!');
+                initializeDayCards(); // Refresh the display
             } else {
-                showMessage('A próxima semana só pode ser aberta aos domingos após 17h!', 'error');
+                showMessage('A semana só pode ser aberta aos domingos após 17h!', 'error');
             }
         });
 
@@ -749,5 +809,5 @@
 
         // Initialize only when needed - grid will be created when user clicks "Novo Agendamento"
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97fcf45d37dc4468',t:'MTc1Nzk4OTk1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97fd44a3e4ad4468',t:'MTc1Nzk5MzI0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
