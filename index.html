@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Agendamento - Clube de Tênis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .booking-slot {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .booking-slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .booking-slot.occupied {
+            cursor: not-allowed;
+        }
+        .booking-slot.occupied:hover {
+            transform: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .day-card.selected {
+            background-color: #3b82f6 !important;
+            border-color: #1d4ed8 !important;
+            color: white !important;
+        }
+        .day-card.selected .text-blue-800,
+        .day-card.selected .text-blue-600,
+        .day-card.selected .text-blue-500 {
+            color: white !important;
+        }
+        .admin-day-card.selected {
+            background-color: #374151 !important;
+            border-color: #111827 !important;
+            color: white !important;
+        }
+        .admin-day-card.selected .text-gray-800,
+        .admin-day-card.selected .text-gray-600,
+        .admin-day-card.selected .text-gray-500 {
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="h-12 w-12 rounded-full overflow-hidden flex items-center justify-center bg-white shadow-md">
+                    <img src="https://i.postimg.cc/562NxnCj/logo.jpg" alt="Logo do Clube" class="h-10 w-10 object-contain" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-green-600 font-bold text-xl\'>🎾</span>';">
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Sistema de Agendamento</h1>
+            </div>
+            <button id="adminBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                Área do Gestor
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-8">
+        <!-- Client Area -->
+        <div id="clientArea" class="container mx-auto px-4 fade-in">
+            <div class="max-w-6xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                    <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Bem-vindo ao Clube de Tênis</h2>
+                    <p class="text-center text-gray-600 mb-8 text-lg">Para marcar um horário digite seu CPF e nome completo!</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">CPF</label>
+                            <input type="text" id="clientCpf" placeholder="000.000.000-00" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+                            <input type="text" id="clientName" placeholder="Seu nome completo" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4 justify-center">
+                        <button id="checkBookingBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            Verificar Agendamento
+                        </button>
+                        <button id="newBookingBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            Novo Agendamento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Booking Grid -->
+                <div id="bookingGrid" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800 text-center mb-2">Agenda da Semana</h3>
+                        <div id="weekDates" class="text-center text-gray-600 mb-4"></div>
+                        <div class="flex justify-center mb-6">
+                            <div class="flex gap-6 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
+                                    <span>Disponível</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
+                                    <span>Ocupado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Day Selection -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="0">
+                            <div class="font-bold text-blue-800">Segunda</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-0"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-0"></div>
+                        </div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="1">
+                            <div class="font-bold text-blue-800">Terça</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-1"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-1"></div>
+                        </div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="2">
+                            <div class="font-bold text-blue-800">Quarta</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-2"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-2"></div>
+                        </div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="3">
+                            <div class="font-bold text-blue-800">Quinta</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-3"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-3"></div>
+                        </div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="4">
+                            <div class="font-bold text-blue-800">Sexta</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-4"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-4"></div>
+                        </div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="5">
+                            <div class="font-bold text-blue-800">Sábado</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-5"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-5"></div>
+                        </div>
+                        <div class="day-card bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center cursor-pointer hover:bg-blue-100 transition-colors" data-day="6">
+                            <div class="font-bold text-blue-800">Domingo</div>
+                            <div class="text-sm text-blue-600 mt-1" id="date-6"></div>
+                            <div class="text-xs text-blue-500 mt-2" id="available-6"></div>
+                        </div>
+                    </div>
+
+                    <!-- Time Slots for Selected Day -->
+                    <div id="timeSlots" class="hidden">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 text-center" id="selectedDayTitle"></h4>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" id="timeSlotsGrid">
+                            <!-- Time slots will be populated by JavaScript -->
+                        </div>
+                        <button id="backToDaysBtn" class="mt-6 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                            ← Voltar aos Dias
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Client Booking Display -->
+                <div id="clientBookingDisplay" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Seu Agendamento</h3>
+                    <div id="bookingDetails" class="bg-green-50 p-4 rounded-lg"></div>
+                    <div class="mt-4 flex gap-4">
+                        <button id="backToGridBtn" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                            Voltar à Agenda
+                        </button>
+                        <button id="cancelClientBookingBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                            Cancelar Agendamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="adminLogin" class="container mx-auto px-4 hidden">
+            <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Área do Gestor</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+                        <input type="text" id="adminUser" value="admin" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                        <input type="password" id="adminPass" value="admin" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors">
+                        Entrar
+                    </button>
+                    <button id="backToClientBtn" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-colors">
+                        Voltar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminPanel" class="container mx-auto px-4 hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Painel do Gestor</h2>
+                        <div class="flex gap-4">
+                            <button id="openWeekBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                Abrir Próxima Semana
+                            </button>
+                            <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                Sair
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Day Selection -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="0">
+                            <div class="font-bold text-gray-800">Segunda</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-0"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-0"></div>
+                        </div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="1">
+                            <div class="font-bold text-gray-800">Terça</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-1"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-1"></div>
+                        </div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="2">
+                            <div class="font-bold text-gray-800">Quarta</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-2"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-2"></div>
+                        </div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="3">
+                            <div class="font-bold text-gray-800">Quinta</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-3"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-3"></div>
+                        </div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="4">
+                            <div class="font-bold text-gray-800">Sexta</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-4"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-4"></div>
+                        </div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="5">
+                            <div class="font-bold text-gray-800">Sábado</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-5"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-5"></div>
+                        </div>
+                        <div class="admin-day-card bg-gray-50 border-2 border-gray-200 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 transition-colors" data-day="6">
+                            <div class="font-bold text-gray-800">Domingo</div>
+                            <div class="text-sm text-gray-600 mt-1" id="admin-date-6"></div>
+                            <div class="text-xs text-gray-500 mt-2" id="admin-booked-6"></div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Time Slots for Selected Day -->
+                    <div id="adminTimeSlots" class="hidden">
+                        <h4 class="text-xl font-bold text-gray-800 mb-4 text-center" id="adminSelectedDayTitle"></h4>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" id="adminTimeSlotsGrid">
+                            <!-- Admin time slots will be populated by JavaScript -->
+                        </div>
+                        <button id="adminBackToDaysBtn" class="mt-6 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                            ← Voltar aos Dias
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bookings List -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Lista de Agendamentos</h3>
+                    <div id="bookingsList" class="space-y-2">
+                        <!-- Bookings list will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-24 right-4 z-50"></div>
+
+    <script>
+        // Data storage
+        let bookings = JSON.parse(localStorage.getItem('tennisBookings')) || {};
+        let currentWeekStart = getWeekStart(new Date());
+        let isNextWeekOpen = JSON.parse(localStorage.getItem('nextWeekOpen')) || false;
+
+        // DOM elements
+        const clientArea = document.getElementById('clientArea');
+        const adminLogin = document.getElementById('adminLogin');
+        const adminPanel = document.getElementById('adminPanel');
+        const bookingGrid = document.getElementById('bookingGrid');
+        const clientBookingDisplay = document.getElementById('clientBookingDisplay');
+
+        // Utility functions
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatCPF(cpf) {
+            return cpf.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        function showMessage(message, type = 'success') {
+            const container = document.getElementById('messageContainer');
+            const div = document.createElement('div');
+            div.className = `p-4 rounded-lg shadow-lg mb-2 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
+            div.textContent = message;
+            container.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function canBookNextWeek() {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const currentHour = now.getHours();
+            
+            // Can only book next week if it's Sunday after 5 PM and admin opened it
+            return currentDay === 0 && currentHour >= 17 && isNextWeekOpen;
+        }
+
+        function initializeDayCards() {
+            // Update week dates display
+            const weekDatesEl = document.getElementById('weekDates');
+            if (weekDatesEl) {
+                const endDate = new Date(currentWeekStart);
+                endDate.setDate(endDate.getDate() + 6);
+                weekDatesEl.textContent = `${currentWeekStart.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`;
+            }
+
+            // Update day cards with dates and availability
+            for (let day = 0; day < 7; day++) {
+                const dayDate = new Date(currentWeekStart);
+                dayDate.setDate(dayDate.getDate() + day);
+                const dateKey = formatDate(dayDate);
+                
+                // Client day cards
+                const dateEl = document.getElementById(`date-${day}`);
+                const availableEl = document.getElementById(`available-${day}`);
+                
+                if (dateEl && availableEl) {
+                    dateEl.textContent = `${dayDate.getDate()}/${dayDate.getMonth() + 1}`;
+                    
+                    // Count available slots for this day
+                    let availableCount = 0;
+                    for (let hour = 8; hour <= 21; hour++) {
+                        const slotKey = `${dateKey}_${hour}:00`;
+                        if (!bookings[slotKey]) {
+                            availableCount++;
+                        }
+                    }
+                    availableEl.textContent = `${availableCount} disponíveis`;
+                }
+
+                // Admin day cards
+                const adminDateEl = document.getElementById(`admin-date-${day}`);
+                const adminBookedEl = document.getElementById(`admin-booked-${day}`);
+                
+                if (adminDateEl && adminBookedEl) {
+                    adminDateEl.textContent = `${dayDate.getDate()}/${dayDate.getMonth() + 1}`;
+                    
+                    // Count booked slots for this day
+                    let bookedCount = 0;
+                    for (let hour = 8; hour <= 21; hour++) {
+                        const slotKey = `${dateKey}_${hour}:00`;
+                        if (bookings[slotKey]) {
+                            bookedCount++;
+                        }
+                    }
+                    adminBookedEl.textContent = `${bookedCount} agendados`;
+                }
+            }
+        }
+
+        function showDayTimeSlots(dayIndex, isAdmin = false) {
+            const dayDate = new Date(currentWeekStart);
+            dayDate.setDate(dayDate.getDate() + dayIndex);
+            const dateKey = formatDate(dayDate);
+            
+            const dayNames = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+            
+            if (isAdmin) {
+                // Admin view
+                document.getElementById('adminSelectedDayTitle').textContent = 
+                    `${dayNames[dayIndex]} - ${dayDate.getDate()}/${dayDate.getMonth() + 1}`;
+                
+                const container = document.getElementById('adminTimeSlotsGrid');
+                container.innerHTML = '';
+                
+                // Mark selected day
+                document.querySelectorAll('.admin-day-card').forEach(card => card.classList.remove('selected'));
+                document.querySelector(`.admin-day-card[data-day="${dayIndex}"]`).classList.add('selected');
+                
+                document.getElementById('adminTimeSlots').classList.remove('hidden');
+            } else {
+                // Client view
+                document.getElementById('selectedDayTitle').textContent = 
+                    `${dayNames[dayIndex]} - ${dayDate.getDate()}/${dayDate.getMonth() + 1}`;
+                
+                const container = document.getElementById('timeSlotsGrid');
+                container.innerHTML = '';
+                
+                // Mark selected day
+                document.querySelectorAll('.day-card').forEach(card => card.classList.remove('selected'));
+                document.querySelector(`.day-card[data-day="${dayIndex}"]`).classList.add('selected');
+                
+                document.getElementById('timeSlots').classList.remove('hidden');
+            }
+
+            // Create time slots for the selected day
+            const container = isAdmin ? document.getElementById('adminTimeSlotsGrid') : document.getElementById('timeSlotsGrid');
+            
+            for (let hour = 8; hour <= 21; hour++) {
+                const timeKey = `${hour}:00`;
+                const slotKey = `${dateKey}_${timeKey}`;
+                
+                const slot = document.createElement('div');
+                slot.className = 'booking-slot p-4 rounded-lg text-center min-h-[80px] flex flex-col items-center justify-center text-sm border-2 transition-all duration-200';
+                
+                const booking = bookings[slotKey];
+                if (booking) {
+                    slot.className += ' bg-red-50 border-red-300 occupied';
+                    const firstName = booking.name.split(' ')[0];
+                    const cpfLast4 = booking.cpf.replace(/\D/g, '').slice(-4);
+                    slot.innerHTML = `
+                        <div class="font-bold text-red-700 mb-1">${timeKey}</div>
+                        <div class="text-center">
+                            <div class="font-semibold text-red-700">${firstName}</div>
+                            <div class="text-red-600 text-xs mt-1">CPF: ${cpfLast4}</div>
+                        </div>
+                    `;
+                    
+                    if (isAdmin) {
+                        slot.style.cursor = 'pointer';
+                        slot.title = `Clique para cancelar agendamento de ${booking.name}`;
+                        slot.addEventListener('click', () => {
+                            if (confirm(`Cancelar agendamento de ${booking.name}?`)) {
+                                delete bookings[slotKey];
+                                localStorage.setItem('tennisBookings', JSON.stringify(bookings));
+                                showDayTimeSlots(dayIndex, true);
+                                updateBookingsList();
+                                initializeDayCards();
+                                showMessage('Agendamento cancelado com sucesso!');
+                            }
+                        });
+                    }
+                } else {
+                    slot.className += ' bg-green-50 border-green-300 hover:bg-green-100 hover:border-green-400';
+                    slot.innerHTML = `
+                        <div class="font-bold text-green-700 mb-2">${timeKey}</div>
+                        <div class="text-green-700 font-medium">Disponível</div>
+                    `;
+                    
+                    if (!isAdmin) {
+                        slot.style.cursor = 'pointer';
+                        slot.title = 'Clique para agendar este horário';
+                        slot.addEventListener('click', () => bookSlot(slotKey, dateKey, timeKey));
+                    }
+                }
+                
+                container.appendChild(slot);
+            }
+        }
+
+        function bookSlot(slotKey, dateKey, timeKey) {
+            const cpf = document.getElementById('clientCpf').value.trim();
+            const name = document.getElementById('clientName').value.trim();
+
+            if (!cpf || !name) {
+                showMessage('Por favor, preencha CPF e nome completo!', 'error');
+                return;
+            }
+
+            // Check if client already has a booking for this specific slot
+            if (bookings[slotKey]) {
+                showMessage('Este horário já está ocupado!', 'error');
+                return;
+            }
+
+
+
+            // Check if date is valid (current week only, unless next week is open)
+            const slotDate = new Date(dateKey);
+            const today = new Date();
+            const weekStart = getWeekStart(today);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+
+            if (slotDate < weekStart || slotDate > weekEnd) {
+                if (!canBookNextWeek() || slotDate < weekStart) {
+                    showMessage('Você só pode agendar para a semana atual!', 'error');
+                    return;
+                }
+            }
+
+            // Make booking
+            bookings[slotKey] = {
+                cpf: formatCPF(cpf),
+                name: name,
+                date: dateKey,
+                time: timeKey
+            };
+
+            localStorage.setItem('tennisBookings', JSON.stringify(bookings));
+            showMessage('Agendamento realizado com sucesso!');
+            initializeDayCards();
+            showClientBooking(formatCPF(cpf));
+        }
+
+        function showClientBooking(cpf) {
+            const clientBookings = Object.values(bookings).filter(b => b.cpf === cpf);
+            
+            if (clientBookings.length > 0) {
+                const details = document.getElementById('bookingDetails');
+                
+                if (clientBookings.length === 1) {
+                    const booking = clientBookings[0];
+                    const bookingDate = new Date(booking.date);
+                    details.innerHTML = `
+                        <h4 class="font-semibold text-lg mb-2">Seu Agendamento</h4>
+                        <div class="bg-white p-4 rounded-lg border">
+                            <p><strong>Nome:</strong> ${booking.name}</p>
+                            <p><strong>CPF:</strong> ${booking.cpf}</p>
+                            <p><strong>Data:</strong> ${bookingDate.toLocaleDateString('pt-BR')}</p>
+                            <p><strong>Horário:</strong> ${booking.time}</p>
+                        </div>
+                    `;
+                    window.currentClientBooking = booking;
+                } else {
+                    details.innerHTML = `
+                        <h4 class="font-semibold text-lg mb-2">Seus Agendamentos (${clientBookings.length})</h4>
+                        <div class="space-y-3">
+                            ${clientBookings.map((booking, index) => {
+                                const bookingDate = new Date(booking.date);
+                                return `
+                                    <div class="bg-white p-4 rounded-lg border">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p><strong>Data:</strong> ${bookingDate.toLocaleDateString('pt-BR')}</p>
+                                                <p><strong>Horário:</strong> ${booking.time}</p>
+                                            </div>
+                                            <button onclick="cancelSpecificBooking('${booking.date}_${booking.time}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                    window.currentClientBookings = clientBookings;
+                }
+                
+                clientBookingDisplay.classList.remove('hidden');
+                bookingGrid.classList.add('hidden');
+            } else {
+                showMessage('Nenhum agendamento encontrado para este CPF!', 'error');
+                clientBookingDisplay.classList.add('hidden');
+                bookingGrid.classList.remove('hidden');
+                document.getElementById('timeSlots').classList.add('hidden');
+                initializeDayCards();
+            }
+        }
+
+        function updateBookingsList() {
+            const container = document.getElementById('bookingsList');
+            container.innerHTML = '';
+
+            const bookingArray = Object.entries(bookings).map(([key, booking]) => ({
+                key,
+                ...booking
+            })).sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time));
+
+            if (bookingArray.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">Nenhum agendamento encontrado.</p>';
+                return;
+            }
+
+            bookingArray.forEach(booking => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-4 bg-gray-50 rounded-lg';
+                
+                const bookingDate = new Date(booking.date);
+                div.innerHTML = `
+                    <div>
+                        <strong>${booking.name}</strong> - ${booking.cpf}<br>
+                        <span class="text-sm text-gray-600">${bookingDate.toLocaleDateString('pt-BR')} às ${booking.time}</span>
+                    </div>
+                    <button onclick="cancelBooking('${booking.key}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+                        Cancelar
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function cancelBooking(key) {
+            if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                delete bookings[key];
+                localStorage.setItem('tennisBookings', JSON.stringify(bookings));
+                createWeekGrid(document.getElementById('adminWeekGrid'), true);
+                updateBookingsList();
+                showMessage('Agendamento cancelado com sucesso!');
+            }
+        }
+
+        function cancelSpecificBooking(key) {
+            if (confirm('Tem certeza que deseja cancelar este agendamento?')) {
+                delete bookings[key];
+                localStorage.setItem('tennisBookings', JSON.stringify(bookings));
+                
+                // Refresh the client booking display
+                const cpf = document.getElementById('clientCpf').value.trim();
+                showClientBooking(formatCPF(cpf));
+                
+                showMessage('Agendamento cancelado com sucesso!');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            clientArea.classList.add('hidden');
+            adminLogin.classList.remove('hidden');
+        });
+
+        document.getElementById('backToClientBtn').addEventListener('click', () => {
+            adminLogin.classList.add('hidden');
+            clientArea.classList.remove('hidden');
+        });
+
+        document.getElementById('backToGridBtn').addEventListener('click', () => {
+            clientBookingDisplay.classList.add('hidden');
+            bookingGrid.classList.remove('hidden');
+        });
+
+        document.getElementById('cancelClientBookingBtn').addEventListener('click', () => {
+            if (window.currentClientBooking && confirm('Tem certeza que deseja cancelar seu agendamento?')) {
+                const booking = window.currentClientBooking;
+                const slotKey = `${booking.date}_${booking.time}`;
+                
+                delete bookings[slotKey];
+                localStorage.setItem('tennisBookings', JSON.stringify(bookings));
+                
+                showMessage('Agendamento cancelado com sucesso!');
+                clientBookingDisplay.classList.add('hidden');
+                bookingGrid.classList.remove('hidden');
+                document.getElementById('timeSlots').classList.add('hidden');
+                initializeDayCards();
+                
+                // Clear form
+                document.getElementById('clientCpf').value = '';
+                document.getElementById('clientName').value = '';
+            } else if (window.currentClientBookings && window.currentClientBookings.length > 1) {
+                showMessage('Use os botões individuais para cancelar agendamentos específicos!', 'error');
+            }
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+
+            if (user === 'admin' && pass === 'admin') {
+                adminLogin.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                document.getElementById('adminTimeSlots').classList.add('hidden');
+                initializeDayCards();
+                updateBookingsList();
+            } else {
+                showMessage('Usuário ou senha incorretos!', 'error');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            adminPanel.classList.add('hidden');
+            clientArea.classList.remove('hidden');
+        });
+
+        document.getElementById('openWeekBtn').addEventListener('click', () => {
+            const now = new Date();
+            if (now.getDay() === 0 && now.getHours() >= 17) {
+                isNextWeekOpen = true;
+                localStorage.setItem('nextWeekOpen', JSON.stringify(true));
+                showMessage('Próxima semana aberta para agendamentos!');
+            } else {
+                showMessage('A próxima semana só pode ser aberta aos domingos após 17h!', 'error');
+            }
+        });
+
+        document.getElementById('checkBookingBtn').addEventListener('click', () => {
+            const cpf = document.getElementById('clientCpf').value.trim();
+            if (!cpf) {
+                showMessage('Por favor, digite seu CPF!', 'error');
+                return;
+            }
+            showClientBooking(formatCPF(cpf));
+        });
+
+        document.getElementById('newBookingBtn').addEventListener('click', () => {
+            clientBookingDisplay.classList.add('hidden');
+            bookingGrid.classList.remove('hidden');
+            document.getElementById('timeSlots').classList.add('hidden');
+            initializeDayCards();
+        });
+
+        // Day card click handlers
+        document.querySelectorAll('.day-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const dayIndex = parseInt(card.dataset.day);
+                showDayTimeSlots(dayIndex, false);
+            });
+        });
+
+        document.querySelectorAll('.admin-day-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const dayIndex = parseInt(card.dataset.day);
+                showDayTimeSlots(dayIndex, true);
+            });
+        });
+
+        document.getElementById('backToDaysBtn').addEventListener('click', () => {
+            document.getElementById('timeSlots').classList.add('hidden');
+            document.querySelectorAll('.day-card').forEach(card => card.classList.remove('selected'));
+        });
+
+        document.getElementById('adminBackToDaysBtn').addEventListener('click', () => {
+            document.getElementById('adminTimeSlots').classList.add('hidden');
+            document.querySelectorAll('.admin-day-card').forEach(card => card.classList.remove('selected'));
+        });
+
+        // Format CPF input
+        document.getElementById('clientCpf').addEventListener('input', (e) => {
+            e.target.value = formatCPF(e.target.value);
+        });
+
+        // Initialize only when needed - grid will be created when user clicks "Novo Agendamento"
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97fcf45d37dc4468',t:'MTc1Nzk4OTk1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
